@@ -1,0 +1,631 @@
+{
+  "name": "Real Estate Lead Qualification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f0b45749-cab1-4e51-ba02-2997d0eb24af",
+      "name": "Webhook",
+      "webhookId": "e94a34af-c737-4d73-a2ac-6b3f305055ae"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "14GcFliQx2DwJsxZs0btgdTO-0FgPobIVH4Wzy0z-U-w",
+          "mode": "list",
+          "cachedResultName": "Responses for Form Intake ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14GcFliQx2DwJsxZs0btgdTO-0FgPobIVH4Wzy0z-U-w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1588433662,
+          "mode": "list",
+          "cachedResultName": "Form responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14GcFliQx2DwJsxZs0btgdTO-0FgPobIVH4Wzy0z-U-w/edit#gid=1588433662"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ],
+      "id": "be972294-22c8-48bb-8ce2-1f98a4863e7c",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "KPm59245CE4ZzGXy",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "customEmailConfig": "[[\"SUBJECT\", \"New Lead\"]]"
+        }
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [
+        0,
+        144
+      ],
+      "id": "bc034d40-eb26-47b5-a37c-83acab65a2fa",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "zScdUWwF2ofiIal9",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const budget = $json.budget;\n\nlet leadScore = 'C';\nif (budget > 300000) {\n  leadScore = 'A';\n} else if (budget > 150000) {\n  leadScore = 'B';\n}\n\nreturn [{\n  json: {\n    ...$json,\n    leadScore\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        144
+      ],
+      "id": "85116704-d1c9-4fa8-a947-78493cc62493",
+      "name": "Score Lead Quality (A/B/C)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the incoming JSON\nconst data = $json;\n\n// Clean & format\nconst formatted = {\n  name: data.name || 'Unknown',\n  phone: data.phone || 'Unknown',\n  budget: parseInt(data.budget || '0', 10),\n  propertyType: data.propertyType || 'Apartment',\n  location: data.location || 'Not specified',\n  timeline: data.timeline || 'Not specified',\n  familySize: data.familySize || '1',\n  specialRequirements: data.specialRequirements || 'None'\n};\n\nreturn [{ json: formatted }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        144
+      ],
+      "id": "31d951fb-a869-45b4-ab84-dbef6e823185",
+      "name": "Extract and Validate Lead Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI",
+          "mode": "list",
+          "cachedResultName": "real_estate_leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Phone": "={{ $json.phone }}",
+            "Budget": "={{ $json.budget }}",
+            "Property Type": "={{ $json.propertyType }}",
+            "Location": "={{ $json.location }}",
+            "Timeline": "={{ $json.timeline }}",
+            "Family Size": "={{ $json.familySize }}",
+            "Special Requirements": "={{ $json.specialRequirements }}",
+            "Lead Score": "={{ $json.leadScore }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Property Type",
+              "displayName": "Property Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Family Size",
+              "displayName": "Family Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Special Requirements",
+              "displayName": "Special Requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        624,
+        160
+      ],
+      "id": "16c5e53b-fade-4763-b2c6-0a66e13b9ced",
+      "name": "Log Lead to Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4BlCOxP0vMptoiBg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/5db1674b-06ae-4f5f-9bb0-771aadf33442",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Name",
+              "value": "={{ $json.Name }}"
+            },
+            {
+              "name": "Phone",
+              "value": "={{ $json.Phone }}"
+            },
+            {
+              "name": "Budget",
+              "value": "={{ $json.Budget }}"
+            },
+            {
+              "name": "Location",
+              "value": "={{ $json.Location }}"
+            },
+            {
+              "name": "Timeline",
+              "value": "={{ $json.Timeline }}"
+            },
+            {
+              "name": "Family Size",
+              "value": "={{ $json['Family Size'] }}"
+            },
+            {
+              "name": "Special Requirements",
+              "value": "={{ $json['Special Requirements'] }}"
+            },
+            {
+              "name": "Lead Score'",
+              "value": "={{ $json['Lead Score'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        160
+      ],
+      "id": "c3c5c089-2442-496f-917c-6e9fee35aae0",
+      "name": "Send Qualified Lead Summary to Assigned Agent"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        368
+      ],
+      "id": "2d4275cb-fa23-4576-b791-4121075f42b3",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce3c34da-27ce-4fa6-8a28-e4ae64c9f69e",
+              "name": "agentReply",
+              "value": "Suggest Apartment ID 1234 and 5678",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        304
+      ],
+      "id": "5b948d74-21cc-47eb-a962-98483623cb4b",
+      "name": "Edit Fields",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    ...$json,\n    processedAgentReply: $json.agentReply.toUpperCase() // dummy example\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        272
+      ],
+      "id": "b24f7a11-7f24-4049-9b7d-b4c00794c642",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI",
+          "mode": "list",
+          "cachedResultName": "real_estate_leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b8nNjywHZvGAMsPeOZJSCiB62V3bhEhmKvELYeIK6sI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Processed Reply": "={{ $json.processedAgentReply }}",
+            "Agent Reply |": "={{ $json.agentReply }}",
+            "Lead Score": "={{ $json['Lead Score'] }}",
+            "Special Requirements": "={{ $json['Special Requirements'] }}",
+            "Family Size": "={{ $json['Family Size'] }}",
+            "Timeline": "={{ $json.Timeline }}",
+            "Location": "={{ $json.Location }}",
+            "Property Type": "={{ $json['Property Type'] }}",
+            "Budget": "={{ $json.Budget }}",
+            "Phone": "={{ $json.Phone }}",
+            "Name": "={{ $json.Name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Property Type",
+              "displayName": "Property Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Family Size",
+              "displayName": "Family Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Special Requirements",
+              "displayName": "Special Requirements",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Agent Reply |",
+              "displayName": "Agent Reply |",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Processed Reply",
+              "displayName": "Processed Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1728,
+        272
+      ],
+      "id": "2cf0174f-ac75-4d79-9e17-651ed5f9ecc6",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4BlCOxP0vMptoiBg",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Extract and Validate Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract and Validate Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract and Validate Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract and Validate Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Score Lead Quality (A/B/C)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Lead Quality (A/B/C)": {
+      "main": [
+        [
+          {
+            "node": "Log Lead to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Lead to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send Qualified Lead Summary to Assigned Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Qualified Lead Summary to Assigned Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3d0f4549-106b-460f-93df-50eaf9d8af5e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d8c34c750e2bf64dc150a6c8b3c09e4d933b02c2ddd156d6611ca364c73e2766"
+  },
+  "id": "efNSbkEBzqfofJ4f",
+  "tags": []
+}
