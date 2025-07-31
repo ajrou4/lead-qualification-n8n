@@ -94,7 +94,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Get the incoming JSON\nconst data = $json;\n\n// Clean & format\nconst formatted = {\n  name: data.name || 'Unknown',\n  phone: data.phone || 'Unknown',\n  budget: parseInt(data.budget || '0', 10),\n  propertyType: data.propertyType || 'Apartment',\n  location: data.location || 'Not specified',\n  timeline: data.timeline || 'Not specified',\n  familySize: data.familySize || '1',\n  specialRequirements: data.specialRequirements || 'None'\n};\n\nreturn [{ json: formatted }];\n"
+        "jsCode": "// Check if data is nested in body or params\nconst data = $json.body || $json.params || $json;\n\nconsole.log('Extracted data:', JSON.stringify(data, null, 2));\n\nreturn [{\n  json: {\n    name: data.name || 'Unknown',\n    phone: data.phone || 'Unknown',\n    budget: parseInt(data.budget || '0', 10),\n    propertyType: data.propertyType || 'Apartment',\n    location: data.location || 'Not specified',\n    timeline: data.timeline || 'Not specified',\n    familySize: data.familySize || '1',\n    specialRequirements: data.specialRequirements || 'None'\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -125,7 +125,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Name": "={{ $json.name }}",
+            "Name": "={{$json.name}}\n",
             "Phone": "={{ $json.phone }}",
             "Budget": "={{ $json.budget }}",
             "Property Type": "={{ $json.propertyType }}",
@@ -242,13 +242,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://webhook.site/5db1674b-06ae-4f5f-9bb0-771aadf33442",
+        "url": "https://webhook.site/a5a586a4-0e9d-4be7-92d3-fb079070741a",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
               "name": "Name",
-              "value": "={{ $json.Name }}"
+              "value": "={{ $json.Name}}"
             },
             {
               "name": "Phone",
@@ -617,11 +617,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3d0f4549-106b-460f-93df-50eaf9d8af5e",
+  "versionId": "a42e062e-23c7-489d-a7ec-42c58abf371a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d8c34c750e2bf64dc150a6c8b3c09e4d933b02c2ddd156d6611ca364c73e2766"
